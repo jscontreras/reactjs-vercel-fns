@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main  # or your production branch
+# Add this permissions block at the top level of your workflow
+permissions:
+  contents: read
+  deployments: write
 
 jobs:
   deploy:
