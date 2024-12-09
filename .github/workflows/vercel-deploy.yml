@@ -48,15 +48,17 @@ jobs:
                   break;
                 }
 
-                console.log('Waiting for in-progress deployments to complete...');
+                core.info('Waiting for in-progress deployments to complete...');
                 await new Promise(resolve => setTimeout(resolve, 5000)); // Wait for 5 seconds
               }
             }
 
             // Wait for any in-progress deployments to complete
+            core.info("Starting Deployment Message!");
             await waitForDeployments();
 
             // Create new deployment
+              core.info("Creating New Deployment!");
             const deployment = await github.rest.repos.createDeployment({
               owner,
               repo,
@@ -67,12 +69,13 @@ jobs:
             });
 
             // Create deployment status
+            core.info("Creating Deployment Status!");
             await github.rest.repos.createDeploymentStatus({
               owner,
               repo,
               deployment_id: deployment.data.id,
               state: 'success',
-              environment_url: '${{ steps.deploy.outputs.url }}',
+              environment_url: 'https://vite-vercel-fns.vercel.app/',
               log_url: `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`,
               description: 'Vercel Deployment finished successfully.'
             });
