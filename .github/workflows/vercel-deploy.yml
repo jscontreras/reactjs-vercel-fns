@@ -23,7 +23,9 @@ jobs:
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_SCOPE }}
 
       - name: Deploy on Vercel
-        run: echo "{url}={$(vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}) --scope=${{ secrets.VERCEL_SCOPE }}}" >> $GITHUB_OUTPUT
+        run: |
+          VERCEL_URL=$(vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}) --scope=${{ secrets.VERCEL_SCOPE }})
+          echo "url=$VERCEL_URL >> $GITHUB_OUTPUT
 
       - name: Create GitHub Deployment
         uses: actions/github-script@v6
@@ -69,13 +71,13 @@ jobs:
             });
 
             // Create deployment status
-            core.info("Creating Deployment Status!");
+            core.info(`Creating Deployment Status for ${{ steps.deploy.outputs.url }}`);
             await github.rest.repos.createDeploymentStatus({
               owner,
               repo,
               deployment_id: deployment.data.id,
               state: 'success',
-              environment_url: 'https://vite-vercel-fns.vercel.app/',
+              environment_url: `${{ steps.deploy.outputs.url }}`,
               log_url: `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`,
               description: 'Vercel Deployment finished successfully.'
             });
