@@ -25,7 +25,7 @@ jobs:
       - name: Deploy on Vercel
         run: |
           VERCEL_URL=$(vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_SCOPE }})
-          echo "url=$VERCEL_URL >> $GITHUB_OUTPUT
+          echo "url=$VERCEL_URL" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Deployment
         uses: actions/github-script@v6
