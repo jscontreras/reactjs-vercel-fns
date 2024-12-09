@@ -23,7 +23,7 @@ jobs:
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_SCOPE }}
 
       - name: Deploy on Vercel
-        run: echo "::set-output name=url::$(vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}) --scope=${{ secrets.VERCEL_SCOPE }}"
+        run: echo "{url}={$(vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}) --scope=${{ secrets.VERCEL_SCOPE }}}" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Deployment
         uses: actions/github-script@v6
