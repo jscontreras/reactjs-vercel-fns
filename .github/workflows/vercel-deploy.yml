@@ -30,6 +30,7 @@ jobs:
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
+            core.info('Creating GitHub deployment!');
             const { owner, repo } = context.repo;
             const sha = context.sha;
 
@@ -73,5 +74,5 @@ jobs:
               state: 'success',
               environment_url: '${{ steps.deploy.outputs.url }}',
               log_url: `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`,
-              description: 'Deployment finished successfully.'
+              description: 'Vercel Deployment finished successfully.'
             });
