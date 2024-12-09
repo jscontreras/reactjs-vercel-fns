@@ -23,6 +23,7 @@ jobs:
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_SCOPE }}
 
       - name: Deploy on Vercel
+        id: vercel-deploy
         run: |
           VERCEL_DEPLOY_OUTPUT=$(vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_SCOPE }})
           VERCEL_URL=DEPLOYMENT_URL=$(echo "$VERCEL_DEPLOY_OUTPUT" | grep -oP 'https://.*\.vercel\.app')
@@ -73,13 +74,13 @@ jobs:
             });
 
             // Create deployment status
-            core.info(`Creating Deployment Status for ${{ steps.deploy.outputs.url }}`);
+            core.info(`Creating Deployment Status for ${{ steps.vercel-deploy.outputs.url }}`);
             await github.rest.repos.createDeploymentStatus({
               owner,
               repo,
               deployment_id: deployment.data.id,
               state: 'success',
-              environment_url: `${{ steps.deploy.outputs.url }}`,
+              environment_url: `${{ steps.vercel-deploy.outputs.url }}`,
               log_url: `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`,
               description: 'Vercel Deployment finished successfully.'
             });
