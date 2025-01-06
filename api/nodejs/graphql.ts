@@ -1,6 +1,8 @@
 import { ApolloServer } from '@apollo/server';
 import { startServerAndCreateNextHandler } from '@as-integrations/next';
 
+// Even when graphql server can be added, it will be deployed as a lambda (lifetime constrained)
+
 // Define your GraphQL schema
 const typeDefs = `
   type Query {
