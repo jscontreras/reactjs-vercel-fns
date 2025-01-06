@@ -12,7 +12,10 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "allowJs": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "*": ["../../node_modules"]
+    }
   },
   "include": [
     "**/*.ts"
