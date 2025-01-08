@@ -10,22 +10,17 @@ const ISSUER = `https://${AUTH0_DOMAIN}/`; // Auth0 issuer
 // Helper function that validates Auth0 token
 async function validateToken(token: string) {
   if (!token) {
-    return new Response(JSON.stringify({ message: "Token is missing" }), { status: 401 });
+    throw new Error("Missing Auth Token");
   }
-  try {
-    // Create a JWKS client
-    const JWKS = createRemoteJWKSet(new URL(JWKS_URL));
-    const { payload } = await jwtVerify(token, JWKS, {
-      issuer: ISSUER,
-      audience: AUDIENCE,
-      algorithms: ['RS256'], // Ensure RS256 is used
-    });
-    return payload;
-  }
-  catch (error: any) {
-    console.error(error.message);
-    return new Response(JSON.stringify({ message: error.message }), { status: 401 });
-  };
+
+  // Create a JWKS client
+  const JWKS = createRemoteJWKSet(new URL(JWKS_URL));
+  const { payload } = await jwtVerify(token, JWKS, {
+    issuer: ISSUER,
+    audience: AUDIENCE,
+    algorithms: ['RS256'], // Ensure RS256 is used
+  });
+  return payload;
 }
 
 export default async function handler(

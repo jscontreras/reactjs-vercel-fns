@@ -77,9 +77,12 @@ function App() {
               if (authRes.status === 200) {
                 resolve(authRes);
               } else {
-                throw new Error(`[${authRes.status}] ${authRes.statusText}`);
+                const body = await authRes.json();
+
+                throw new Error(`[${authRes.status}] ${authRes.statusText}: ${body.message}`);
               }
             } catch (e: any) {
+              console.log('e', e)
               resolve({ json: () => ({ message: e.message }) });
             }
           }) as Promise<any>

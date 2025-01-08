@@ -10,22 +10,17 @@ const ISSUER = `https://${AUTH0_DOMAIN}/`; // Auth0 issuer
 // Helper function that validates Auth0 token
 async function validateToken(token: string) {
   if (!token) {
-    return new Response(JSON.stringify({ message: "Token is missing" }), { status: 401 });
+    throw new Error("Missing Auth Token [M]");
   }
-  try {
-    // Create a JWKS client
-    const JWKS = createRemoteJWKSet(new URL(JWKS_URL));
-    const { payload } = await jwtVerify(token, JWKS, {
-      issuer: ISSUER,
-      audience: AUDIENCE,
-      algorithms: ['RS256'], // Ensure RS256 is used
-    });
-    return payload;
-  }
-  catch (error) {
-    console.error(error.message);
-    return new Response(JSON.stringify({ message: error.message}), { status: 401 });
-  };
+
+  // Create a JWKS client
+  const JWKS = createRemoteJWKSet(new URL(JWKS_URL));
+  const { payload } = await jwtVerify(token, JWKS, {
+    issuer: ISSUER,
+    audience: AUDIENCE,
+    algorithms: ['RS256'], // Ensure RS256 is used
+  });
+  return payload;
 }
 
 export default async function middleware(request: Request) {
@@ -36,7 +31,11 @@ export default async function middleware(request: Request) {
     const authHeader = request.headers.get("authorization");
     const token = authHeader?.split(" ")[1] || ""; // Extract the Bearer token
     // Validate token
-    await validateToken(token);
+    try {
+      await validateToken(token);
+    } catch (error) {
+      return new Response(JSON.stringify({ message: `Invalid Credentials [M]` }), { status: 401 });
+    }
   }
 }
 
