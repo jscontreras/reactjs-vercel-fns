@@ -24,7 +24,7 @@ async function validateToken(token: string) {
   }
   catch (error) {
     console.error(error.message);
-    return new Response(JSON.stringify({ message: error.message }), { status: 401 });
+    return new Response(JSON.stringify({ message: '[401] Unauthorized'}), { status: 401 });
   };
 }
 
