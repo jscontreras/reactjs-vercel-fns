@@ -60,15 +60,15 @@ function App() {
           fetch('/api/edge/hello'),
           fetch('/api/nodejs/hello'),
           new Promise(async (resolve) => {
+            let validToken = 'SAMPLE_FAKE_TOKEN_INITIAL';
             try {
-              let validToken = 'SAMPLE_FAKE_TOKEN_INITIAL';
-              try {
-                const extractToken = await getAccessTokenSilently();
-                validToken = extractToken;
-              } catch(e) {
-                console.log(e);
-                // do nothing as we want to proceed with invalid token;
-              }
+              // Extract token if authenticated, throw errors otherwisse.
+              const extractToken = await getAccessTokenSilently();
+              validToken = extractToken;
+            } catch (e) {
+              // do nothing as we intentionally want to proceed with invalid token;
+            }
+            try {
               const authRes = await fetch(`/api/nodejs/hello-auth`, {
                 headers: {
                   Authorization: `Bearer ${validToken}`,
@@ -77,14 +77,10 @@ function App() {
               if (authRes.status === 200) {
                 resolve(authRes);
               } else {
-                resolve({json: async ()=> {
-                  return {
-                    message: `[${authRes.status}] ${authRes.statusText}`
-                  }
-                }})
+                throw new Error(`[${authRes.status}] ${authRes.statusText}`);
               }
             } catch (e: any) {
-              resolve({ json: ()=> ({message: e.message })});
+              resolve({ json: () => ({ message: e.message }) });
             }
           }) as Promise<any>
         ]);
