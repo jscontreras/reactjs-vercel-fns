@@ -61,7 +61,14 @@ function App() {
           fetch('/api/nodejs/hello'),
           new Promise(async (resolve) => {
             try {
-              const validToken = await getAccessTokenSilently();
+              let validToken = 'SAMPLE_FAKE_TOKEN_INITIAL';
+              try {
+                const extractToken = await getAccessTokenSilently();
+                validToken = extractToken;
+              } catch(e) {
+                console.log(e);
+                // do nothing as we want to proceed with invalid token;
+              }
               const authRes = await fetch(`/api/nodejs/hello-auth`, {
                 headers: {
                   Authorization: `Bearer ${validToken}`,

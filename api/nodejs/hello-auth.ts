@@ -1,21 +1,31 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
-import jwksClient from "jwks-rsa";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { createRemoteJWKSet, jwtVerify } from 'jose';
 
 // Define constants for audience and required scope
-const auth0Domain = process.env.VITE_AUTH0_DOMAIN || '';
-const auth0Audience = process.env.VITE_AUTH0_AUDIENCE || '';
-const auth0Scope = process.env.VITE_AUTH0_SCOPE || '';
+const AUTH0_DOMAIN = process.env.VITE_AUTH0_DOMAIN || '';
+const JWKS_URL = `https://${AUTH0_DOMAIN}/.well-known/jwks.json`;
+const AUDIENCE = process.env.VITE_AUTH0_AUDIENCE || '';
+const ISSUER = `https://${AUTH0_DOMAIN}/`; // Auth0 issuer
 
-// Create a JWKS client to fetch signing keys
-const client = jwksClient({
-  jwksUri: `https://${auth0Domain}/.well-known/jwks.json`, // Replace with your JWKS URI
-});
-
-// Helper function to get the signing key
-async function getSigningKey(kid: string): Promise<string> {
-  const key = await client.getSigningKey(kid);
-  return key.getPublicKey();
+// Helper function that validates Auth0 token
+async function validateToken(token: string) {
+  if (!token) {
+    return new Response(JSON.stringify({ message: "Token is missing" }), { status: 401 });
+  }
+  try {
+    // Create a JWKS client
+    const JWKS = createRemoteJWKSet(new URL(JWKS_URL));
+    const { payload } = await jwtVerify(token, JWKS, {
+      issuer: ISSUER,
+      audience: AUDIENCE,
+      algorithms: ['RS256'], // Ensure RS256 is used
+    });
+    return payload;
+  }
+  catch (error: any) {
+    console.error(error.message);
+    return new Response(JSON.stringify({ message: error.message }), { status: 401 });
+  };
 }
 
 export default async function handler(
@@ -26,40 +36,16 @@ export default async function handler(
     const authHeader = request.headers.authorization;
     const token = authHeader?.split(" ")[1] || ""; // Extract the Bearer token
 
+    // At this point the token has been already validated by the Middleware (edge runtime).
+    // You can also validate direclty in this function
+    await validateToken(token);
+
     if (!token) {
       throw new Error("Token is missing");
     }
 
-    // Decode the token without verifying to extract header information
-    const decodedHeader = jwt.decode(token, { complete: true });
-    if (!decodedHeader || typeof decodedHeader === "string") {
-      throw new Error("Invalid token format");
-    }
-
-    const { kid } = decodedHeader.header; // Get Key ID (kid)
-    if (!kid) {
-      throw new Error("Token header missing 'kid'");
-    }
-
-    // Fetch the signing key using the kid
-    const signingKey = await getSigningKey(kid);
-
-    // Verify the token's signature and decode it
-    const decodedToken = jwt.verify(token, signingKey) as JwtPayload;
-
-    // Validate audience
-    if (!decodedToken.aud?.includes(auth0Audience)) {
-      throw new Error("Invalid audience");
-    }
-
-    // // Validate scopes
-    const scopes = decodedToken.scope?.split(" ") || [];
-    if (auth0Scope.split(" ").some((scope) => !scopes.includes(scope))) {
-      throw new Error("Insufficient scope");
-    }
-
     // Get info from AUTH0
-    const userDetails = await fetch(`https://${auth0Domain}/userinfo`, {
+    const userDetails = await fetch(`https://${AUTH0_DOMAIN}/userinfo`, {
       headers: {
         Authorization: `Bearer ${token}`,
       }});
@@ -67,7 +53,7 @@ export default async function handler(
     const {name} = await userDetails.json() as any;
 
     // If all checks pass, return success response
-    return response.status(200).json({ message: `Hello ${name}! (via OAUTH protected Vercel Function)`, claims: decodedToken });
+    return response.status(200).json({ message: `Hello ${name}! (via OAUTH protected Vercel Function)` });
   } catch (error: any) {
     return response.status(401).json({ message: error.message });
   }
