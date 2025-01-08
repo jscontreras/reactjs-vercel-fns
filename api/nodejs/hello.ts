@@ -15,5 +15,5 @@ export default function (request: VercelRequest, response: VercelResponse) {
 
   const text = lorem.generateParagraphs(2);
   console.log('Vercel function API endpoint (nodejs)!')
-  return response.json({ message: "Hello World From Vercel Function (nodejs)", text });
+  return response.json({ message: "Hello World From Vercel Public Function (nodejs)", text });
 }
