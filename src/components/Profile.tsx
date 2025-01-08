@@ -23,7 +23,7 @@ const Profile = () => {
         </div>
         <div className="text-left justify-between items-center">
           <h2>{user?.name}</h2>
-          <p>{user?.email ? 'testing@mail.com' : ''}</p>
+          <p>{user?.email}</p>
         </div>
       </div>
       </div>
